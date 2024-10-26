@@ -8,6 +8,9 @@
 #include "Bird.generated.h"
 
 
+class UFloatingPawnMovement;
+class UCameraComponent;
+class USpringArmComponent;
 class UInputAction;
 class UCapsuleComponent;
 class USkeletalMesh;
@@ -51,5 +54,12 @@ private:
 	UPROPERTY(VisibleAnywhere)
     USkeletalMeshComponent* BirdMesh;
 
-	
+	UPROPERTY(VisibleAnywhere)
+	USpringArmComponent* SpringArmComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UCameraComponent* CameraComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UFloatingPawnMovement* FloatingPawnMovement;
 };
