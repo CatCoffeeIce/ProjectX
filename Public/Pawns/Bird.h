@@ -60,6 +60,7 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComponent;
 
+	// You have add this pointer or pawn wont move or rotate
 	UPROPERTY(VisibleAnywhere)
 	UFloatingPawnMovement* FloatingPawnMovement;
 };
