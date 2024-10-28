@@ -30,5 +30,7 @@ public:
 	// need to create a variable for about character how many distance they are moving
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float GroundSpeed;
-	
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	bool IsFalling;
 };
