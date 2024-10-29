@@ -4,6 +4,7 @@
 #include "Items/Item.h"
 //#include "ProjectX/DebugMacros.h"
 // A macro you can create by #define created a debug sphere macro on project header file ez to spawn multiple if needed
+#include "Components/SphereComponent.h"
 #include "ProjectX/ProjectX.h"
 
 
@@ -15,6 +16,9 @@ AItem::AItem()
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMeshComponent"));
 	RootComponent = ItemMesh;
+
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	Sphere->SetupAttachment(GetRootComponent());
 
 }
 
