@@ -5,7 +5,8 @@
 //#include "ProjectX/DebugMacros.h"
 // A macro you can create by #define created a debug sphere macro on project header file ez to spawn multiple if needed
 #include "Components/SphereComponent.h"
-#include "ProjectX/ProjectX.h"
+#include "Character/HeroCharacter.h"
+
 
 
 // Sets default values
@@ -22,6 +23,15 @@ AItem::AItem()
 
 }
 
+// Called when the game starts or when spawned
+void AItem::BeginPlay()
+{
+	Super::BeginPlay();
+// to bind the sphere we have to do this binding our sphere with the 2 delegate function 
+	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereOverlap);
+	Sphere->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereEndOverlap);
+}
+
 
 float AItem::TransformedSin()
 {
@@ -32,12 +42,27 @@ float AItem::TransformedCos()
 {
 	return Amplitutde* FMath::Cos(RunningTime * TimeConstant);
 }
-// Called when the game starts or when spawned
-void AItem::BeginPlay()
-{
-	Super::BeginPlay();
 
+void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    AHeroCharacter* HeroCharacter = Cast<AHeroCharacter>(OtherActor);
+    if (HeroCharacter)
+    {
+	    HeroCharacter->SetOverlappingItem(this);
+    }
 }
+
+void AItem::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AHeroCharacter* HeroCharacter = Cast<AHeroCharacter>(OtherActor);
+	if (HeroCharacter)
+	{
+		HeroCharacter->SetOverlappingItem(nullptr);
+	}
+}
+
 
 // Called every frame
 void AItem::Tick(float DeltaTime)

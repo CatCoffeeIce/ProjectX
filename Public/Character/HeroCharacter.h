@@ -11,6 +11,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class AItem;
 
 
 UCLASS()
@@ -30,6 +31,7 @@ public:
 
 	virtual void Jump() override;
 
+	void Equipping();
 
 protected:
 	// Called when the game starts or when spawned
@@ -59,5 +61,12 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComponent;
 
+	// Making a pointer for the item so we can use the item class abilites when the herocharacter interacts with it
+	UPROPERTY(VisibleInstanceOnly)
+	AItem* OverlappingItem;
+
+public:
+	FORCEINLINE void SetOverlappingItem(AItem* Item) {OverlappingItem = Item;}
+	
 	
 };

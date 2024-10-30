@@ -7,6 +7,8 @@
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Items/Item.h"
+#include "Weapons/Weapons.h"
 
 //X = Forward Y = Right Z = Up
 //X= Roll Y= Pitch Z= Yaw
@@ -76,6 +78,15 @@ void AHeroCharacter::Look(const FInputActionValue& Value)
 void AHeroCharacter::Jump()
 {
 	Super::Jump();
+}
+
+void AHeroCharacter::Equipping()
+{
+	AWeapons* OverlappingWeapon = Cast<AWeapons>(OverlappingItem);
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
+	}
 }
 
 // Called every frame
