@@ -71,8 +71,41 @@ void AHeroCharacter::Look(const FInputActionValue& Value)
 // pitch input will register is written in the code that is Lookaxis vector . Y same for the z which is up and direction 
 
 	const FVector2d LookAxisVector = Value.Get<FVector2d>();
-	AddControllerPitchInput(LookAxisVector.Y);
-	AddControllerYawInput(LookAxisVector.X);
+	AddControllerPitchInput(LookAxisVector.Y * MouseSensitivity);
+	AddControllerYawInput(LookAxisVector.X * MouseSensitivity);
+}
+
+void AHeroCharacter::CaptureState()
+{
+	// Capture the character’s current state and add it to the history array
+	FCharacterState NewState;
+	NewState.Position = GetActorLocation();
+	NewState.Rotation = GetActorRotation();
+
+	// Add new state to the history
+	StateHistory.Add(NewState);
+
+	// Maintain only the last 5 seconds of history (e.g., 5 sec at 60 FPS is ~300 frames)
+	if (StateHistory.Num() > 300)
+	{
+		StateHistory.RemoveAt(0);
+	}
+}
+
+void AHeroCharacter::PerformRewind(float DeltaTime)
+{
+	if (StateHistory.Num() > 0)
+	{
+		// Set the character’s position and rotation to the last recorded state
+		FCharacterState LastState = StateHistory.Pop();
+		SetActorLocation(LastState.Position);
+		SetActorRotation(LastState.Rotation);
+	}
+	else
+	{
+		// End rewind if history is empty
+		bIsRewinding = false;
+	}
 }
 
 void AHeroCharacter::Jump()
@@ -86,13 +119,39 @@ void AHeroCharacter::Equipping()
 	if (OverlappingWeapon)
 	{
 		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
+		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
 	}
+}
+
+void AHeroCharacter::ActivateRewind()
+{
+	if (!bIsRewinding)
+	{
+		bIsRewinding = true;
+		// Optionally set a timer to stop rewinding after 5 seconds
+		GetWorld()->GetTimerManager().SetTimer(RewindTimerHandle, this, &AHeroCharacter::StopRewind, RewindDuration, false);
+	}
+}
+
+void AHeroCharacter::StopRewind()
+{
+	bIsRewinding = false;
 }
 
 // Called every frame
 void AHeroCharacter::Tick(float DeltaTime)
 {
+	//Override the Tick Function: In the Tick function, capture the state if not rewinding. If rewinding, call PerformRewind().
 	Super::Tick(DeltaTime);
+
+	if (bIsRewinding)
+	{
+		PerformRewind(DeltaTime);
+	}
+	else
+	{
+		CaptureState();
+	}
 
 }
 
@@ -105,6 +164,8 @@ void AHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Move);
 		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Look);
 	    EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Jump);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Equipping);
+		EnhancedInputComponent->BindAction(RewindAction, ETriggerEvent::Triggered, this, &AHeroCharacter::ActivateRewind);
 	}
 
 }

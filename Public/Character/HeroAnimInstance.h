@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Animation/AnimInstance.h"
-#include "HeroAnimInstance.generated.h"
+#include  "CoreMinimal.h"
+#include  "Animation/AnimInstance.h"
+#include  "CharacterType.h"
+#include  "HeroAnimInstance.generated.h"
 
 class UCharacterMovementComponent;
 class AHeroCharacter;
@@ -33,4 +34,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	bool IsFalling;
+
+	ECharacterState CharacterState;
 };

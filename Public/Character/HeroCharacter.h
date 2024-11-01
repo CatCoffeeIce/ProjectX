@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Character/CharacterType.h"
+#include "Character/CharacterState.h"
 #include "HeroCharacter.generated.h"
 
 class USpringArmComponent;
@@ -33,6 +35,12 @@ public:
 
 	void Equipping();
 
+	// Activate rewind
+	void ActivateRewind();
+
+	// Stop rewind
+	void StopRewind();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -49,11 +57,26 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* JumpAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* EquipAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* RewindAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	float MouseSensitivity = 1.0f;
+
+	// Timer handle for the rewind timer
+	FTimerHandle RewindTimerHandle;  // Add this line
+
 	
 
 private:
+
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComponent;
@@ -65,8 +88,24 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
 
+	// Stores the last 5 seconds of character states
+	TArray<FCharacterState>StateHistory;
+
+	// Rewind duration
+	float RewindDuration = 5.0f;
+
+	// Whether the rewind is active
+	bool bIsRewinding = false;
+
+	// Function to capture current state
+	void CaptureState();
+
+	// Function to perform rewind
+	void PerformRewind(float DeltaTime);
+
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) {OverlappingItem = Item;}
+	FORCEINLINE ECharacterState GetCharacterState() const{return CharacterState; }
 	
 	
 };
