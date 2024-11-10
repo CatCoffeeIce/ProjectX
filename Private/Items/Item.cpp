@@ -30,6 +30,11 @@ void AItem::BeginPlay()
 // to bind the sphere we have to do this binding our sphere with the 2 delegate function 
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnSphereOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AItem::OnSphereEndOverlap);
+
+	if (InitialMesh)
+	{
+		ItemMesh->SetStaticMesh(InitialMesh);
+	}
 }
 
 
@@ -43,8 +48,17 @@ float AItem::TransformedCos()
 	return Amplitutde* FMath::Cos(RunningTime * TimeConstant);
 }
 
+void AItem::SwapMeshOnPickup()
+{
+	
+	if (PickupMesh)
+	{
+		ItemMesh->SetStaticMesh(PickupMesh);
+	}
+}
+
 void AItem::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                            UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     AHeroCharacter* HeroCharacter = Cast<AHeroCharacter>(OtherActor);
     if (HeroCharacter)

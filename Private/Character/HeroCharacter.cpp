@@ -9,6 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Items/Item.h"
 #include "Weapons/Weapons.h"
+#include "Animation/AnimMontage.h"
 
 //X = Forward Y = Right Z = Up
 //X= Roll Y= Pitch Z= Yaw
@@ -16,7 +17,8 @@
 // Sets default values
 AHeroCharacter::AHeroCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	AttackIndex = 0;
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 // this boolean makes you rotate the camera instead of going to engine and change in bp 
@@ -31,7 +33,7 @@ AHeroCharacter::AHeroCharacter()
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
-
+	
 }
 
 // Called when the game starts or when spawned
@@ -73,6 +75,66 @@ void AHeroCharacter::Look(const FInputActionValue& Value)
 	const FVector2d LookAxisVector = Value.Get<FVector2d>();
 	AddControllerPitchInput(LookAxisVector.Y * MouseSensitivity);
 	AddControllerYawInput(LookAxisVector.X * MouseSensitivity);
+}
+
+
+
+//void AHeroCharacter::ResetCombo()
+//{
+//	ComboStep = 0; // Reset combo when time expires
+//}
+
+void AHeroCharacter::Attack()
+{
+	if (CanAttack())
+	{
+		PlayAttackMontage();
+		ActionState = EActionState::EAS_Attacking;
+	}
+}
+
+void AHeroCharacter::AttackEnd()
+{
+	ActionState = EActionState::EAS_Unoccupied;
+}
+
+bool AHeroCharacter::CanAttack()
+{
+	return ActionState == EActionState::EAS_Unoccupied &&
+		   CharacterState != ECharacterState::ECS_Unequipped; 
+}
+
+void AHeroCharacter::PlayAttackMontage()
+{
+	
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    
+	
+	
+	if (AnimInstance->Montage_IsPlaying(AttackMontage))
+	{
+		//AnimInstance->Montage_Play(AttackMontage);
+		// If the montage is already playing, jump to the next attack section
+		FName SectionName = FName(*FString::Printf(TEXT("Attack%d"), AttackIndex + 1));
+		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+
+		// Increment the attack index and loop back to 0 after Attack3
+		AttackIndex = (AttackIndex + 1) % 3;
+	}
+	else
+	{
+		// If no montage is playing, start the attack sequence from the current attack index
+		FName SectionName = FName(*FString::Printf(TEXT("Attack%d"), AttackIndex + 1));
+		AnimInstance->Montage_Play(AttackMontage);
+		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+
+		// Increment the attack index and loop back to 0 after Attack3
+		AttackIndex = (AttackIndex + 1) % 3;
+	}
+
+	// Debug log to show which attack is being played
+	UE_LOG(LogTemp, Warning, TEXT("Playing section: Attack%d"), AttackIndex);
+
 }
 
 void AHeroCharacter::CaptureState()
@@ -120,6 +182,11 @@ void AHeroCharacter::Equipping()
 	{
 		OverlappingWeapon->Equip(GetMesh(), FName("RightHandSocket"));
 		CharacterState = ECharacterState::ECS_EquippedOneHandedWeapon;
+
+		if (OverlappingItem)
+		{
+			OverlappingItem->SwapMeshOnPickup();
+		}
 	}
 }
 
@@ -165,6 +232,7 @@ void AHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Look);
 	    EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Jump);
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Equipping);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AHeroCharacter::Attack);
 		EnhancedInputComponent->BindAction(RewindAction, ETriggerEvent::Triggered, this, &AHeroCharacter::ActivateRewind);
 	}
 

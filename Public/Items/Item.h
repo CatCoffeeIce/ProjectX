@@ -16,6 +16,8 @@ class PROJECTX_API AItem : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AItem();
+	// Function to swap the mesh
+	void SwapMeshOnPickup();
 
 
 
@@ -36,6 +38,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* ItemMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UStaticMesh* InitialMesh;
+
+	// The mesh to switch to when picked up
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	UStaticMesh* PickupMesh;
+
+	
 
 // These 2 function are for collision one is when u are colliding with the object other is after you are done colliding with object u write log to check whether collison happening or not
 // The purpose of virtual 

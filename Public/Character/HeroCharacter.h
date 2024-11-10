@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "Character/CharacterType.h"
 #include "Character/CharacterState.h"
+//#include "Items/Item.h"
 #include "HeroCharacter.generated.h"
 
 class USpringArmComponent;
@@ -14,6 +15,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class AItem;
+class AttackMontage;
 
 
 UCLASS()
@@ -31,6 +33,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
 	virtual void Jump() override;
 
 	void Equipping();
@@ -41,9 +49,20 @@ public:
 	// Stop rewind
 	void StopRewind();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	void Move(const FInputActionValue& Value);
+
+	void Look(const FInputActionValue& Value);
+
+	void PlayAttackMontage();
+
+	void ResetCombo();
+
+	void Attack();
+
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
+
+	bool CanAttack();
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext* HeroMappingContext;
@@ -63,8 +82,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* RewindAction;
 
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* AttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	float MouseSensitivity = 1.0f;
@@ -72,11 +91,18 @@ protected:
 	// Timer handle for the rewind timer
 	FTimerHandle RewindTimerHandle;  // Add this line
 
-	
+	UPROPERTY(EditDefaultsOnly, Category = "Montages")
+	UAnimMontage* AttackMontage;
+
+	// List of section names for each combo step
+	TArray<FName> AttacksArray;
 
 private:
 
 	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComponent;
@@ -87,6 +113,12 @@ private:
 	// Making a pointer for the item so we can use the item class abilites when the herocharacter interacts with it
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
+
+
+	int32 AttackIndex;
+	//float ComboResetTime = 1.5f;
+
+	//FTimerHandle ComboResetTimer;
 
 	// Stores the last 5 seconds of character states
 	TArray<FCharacterState>StateHistory;
@@ -106,6 +138,8 @@ private:
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) {OverlappingItem = Item;}
 	FORCEINLINE ECharacterState GetCharacterState() const{return CharacterState; }
+	
+	
 	
 	
 };
